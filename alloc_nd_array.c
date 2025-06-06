@@ -44,8 +44,13 @@
 
 
 #ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-macros"
+
 	#define LIKELY(x)   __builtin_expect(!!(x), 1)
 	#define UNLIKELY(x) __builtin_expect(!!(x), 0)
+
+#pragma GCC diagnostic pop
 #else
 	#define LIKELY(x)   (x)
 	#define UNLIKELY(x) (x)
