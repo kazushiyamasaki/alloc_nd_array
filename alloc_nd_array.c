@@ -2,7 +2,7 @@
  * alloc_nd_array.c -- implementation part of a library that provides functions for
  *                     allocating multi-dimensional arrays that can be freed with a
  *                     single free() call
- * version 0.9.0, June 5, 2025
+ * version 0.9.1, June 7, 2025
  *
  * License: zlib License
  *
@@ -123,12 +123,12 @@ static void* alloc_nd_array_generic (const size_t sizes[], size_t dims, size_t e
 
 
 void* alloc_nd_array (const size_t sizes[], size_t dims, size_t elem_size) {
-    return alloc_nd_array_generic(sizes, dims, elem_size, malloc);
+	return alloc_nd_array_generic(sizes, dims, elem_size, malloc);
 }
 
 
 void* calloc_nd_array (const size_t sizes[], size_t dims, size_t elem_size) {
-    return alloc_nd_array_generic(sizes, dims, elem_size, calloc_wrapper);
+	return alloc_nd_array_generic(sizes, dims, elem_size, calloc_wrapper);
 }
 
 

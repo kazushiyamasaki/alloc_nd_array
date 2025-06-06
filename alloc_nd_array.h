@@ -2,7 +2,7 @@
  * alloc_nd_array.h -- interface of a library that provides functions for allocating
  *                     multi-dimensional arrays that can be freed with a single free()
  *                     call
- * version 0.9.0, June 5, 2025
+ * version 0.9.1, June 7, 2025
  *
  * License: zlib License
  *
