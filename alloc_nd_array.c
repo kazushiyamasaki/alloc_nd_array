@@ -35,6 +35,8 @@
 #include <stdint.h>
 
 
+#undef malloc
+#undef calloc
 #undef free
 
 
