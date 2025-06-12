@@ -2,7 +2,7 @@
  * alloc_nd_array.h -- interface of a library that provides functions for allocating
  *                     multi-dimensional arrays that can be freed with a single free()
  *                     call
- * version 0.9.0, June 12, 2025
+ * version 0.9.1, June 12, 2025
  *
  * License: zlib License
  *
@@ -49,6 +49,7 @@ ANDA_CPP_C_BEGIN
 
 
 #include <stddef.h>
+#include <stdbool.h>
 
 
 /*
@@ -77,6 +78,44 @@ extern void* calloc_nd_array (const size_t sizes[], size_t dims, size_t elem_siz
  * @note: this function frees the multi-dimensional array (the actual memory block allocated for it)
  */
 extern void free_nd_array (void* array);
+
+/*
+ * calculate_nd_array_size
+ * @param sizes: array containing sizes for each dimension (must have length equal to dims)
+ * @param dims: number of array dimensions (designed for 2+ dimensions but supports 1D arrays)
+ * @param elem_size: size of each element in bytes (e.g., sizeof(int), sizeof(double), etc.)
+ * @param result_ptrs_size: pointer to store the size of the pointer array (not including padding)
+ * @param result_padding_size: pointer to store the size of the padding
+ * @param result_total_elements: pointer to store the total number of elements in the array
+ * @return: true if the size was successfully calculated, false if an error occurred (e.g., zero dimensions or element size)
+ * @note: This function calculates the size of the multi-dimensional array without allocating memory. It is useful for checking if the requested sizes and element size are valid before actual allocation.
+ */
+extern bool calculate_nd_array_size (const size_t sizes[], size_t dims, size_t elem_size, size_t* result_ptrs_size, size_t* result_padding_size, size_t* result_total_elements);
+
+
+/*
+ * The following function is provided for special use cases where it is necessary to
+ * separate the size calculation and the allocation of a multidimensional array.
+ * Its usage is complex and prone to errors, so it is generally not recommended for
+ * regular use.
+ */
+
+
+typedef void* (*allocFuncPtr)(size_t);
+
+/*
+ * allocate_and_initialize_nd_array
+ * @param sizes: array containing sizes for each dimension (must have length equal to dims)
+ * @param dims: number of array dimensions (designed for 2+ dimensions but supports 1D arrays)
+ * @param elem_size: size of each element in bytes (e.g., sizeof(int), sizeof(double), etc.)
+ * @param size_ptrs: size of the pointer array (not including padding)
+ * @param size_padding: size of the padding
+ * @param total_elements: total number of elements in the array
+ * @param alloc_func: function pointer to the memory allocation function (e.g., malloc, calloc_wrapper)
+ * @return: pointer to the allocated and initialized multi-dimensional array or NULL on failure
+ */
+extern void* allocate_and_initialize_nd_array (const size_t sizes[], size_t dims, size_t elem_size, size_t size_ptrs, size_t size_padding, size_t total_elements, allocFuncPtr alloc_func);
+
 
 ANDA_CPP_C_END
 
