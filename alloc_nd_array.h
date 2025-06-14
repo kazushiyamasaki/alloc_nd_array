@@ -2,7 +2,7 @@
  * alloc_nd_array.h -- interface of a library that provides functions for allocating
  *                     multi-dimensional arrays that can be freed with a single free()
  *                     call
- * version 0.9.1, June 12, 2025
+ * version 0.9.2, June 14, 2025
  *
  * License: zlib License
  *
@@ -53,6 +53,20 @@ ANDA_CPP_C_BEGIN
 
 
 /*
+ * anda_errfunc is a global variable that stores the name of the function
+ * where the most recent error occurred within the hash table library.
+ *
+ * It is set to NULL when no error has occurred.
+ * This variable is used to provide more informative error diagnostics,
+ * especially in combination with errno.
+ *
+ * It is recommended to check this variable and errno after calling
+ * any library function that may fail.
+ */
+extern const char* anda_errfunc;
+
+
+/*
  * alloc_nd_array
  * @param sizes: array containing sizes for each dimension (must have length equal to dims)
  * @param dims: number of array dimensions (designed for 2+ dimensions but supports 1D arrays)
@@ -91,6 +105,22 @@ extern void free_nd_array (void* array);
  * @note: This function calculates the size of the multi-dimensional array without allocating memory. It is useful for checking if the requested sizes and element size are valid before actual allocation.
  */
 extern bool calculate_nd_array_size (const size_t sizes[], size_t dims, size_t elem_size, size_t* result_ptrs_size, size_t* result_padding_size, size_t* result_total_elements);
+
+
+/*
+ * The following function is not part of this library's original purpose, but we ended up
+ * creating one that is generally useful during development, so we've decided to make it
+ * publicly available.
+ */
+
+/*
+ * anda_align_up
+ * @param value: the value to align
+ * @param alignment: the alignment value
+ * @return: the aligned value, or 0 if an error occurred (e.g., alignment is zero or causes overflow)
+ * @note: this function aligns the given value up to multiple of the specified alignment
+ */
+extern size_t anda_align_up (size_t value, size_t alignment);
 
 
 /*

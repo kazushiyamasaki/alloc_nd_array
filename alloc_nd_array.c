@@ -2,7 +2,7 @@
  * alloc_nd_array.c -- implementation part of a library that provides functions for
  *                     allocating multi-dimensional arrays that can be freed with a
  *                     single free() call
- * version 0.9.1, June 12, 2025
+ * version 0.9.2, June 14, 2025
  *
  * License: zlib License
  *
@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <errno.h>
 
 
 #undef malloc
@@ -59,15 +60,22 @@
 #endif
 
 
+/* errno 記録時に関数名を記録する */
+const char* anda_errfunc = NULL;  /* 非スレッドセーフ */
+
+
 static void* calloc_wrapper (size_t size) {
 	return calloc(1, size);
 }
 
 
-static size_t align_up (size_t value, size_t alignment) {
-	if (alignment == 0 || alignment == 1) return value;
+size_t anda_align_up (size_t value, size_t alignment) {
+	if (alignment == 1) return value;
 
-	if (value > (SIZE_MAX - (alignment - 1))) return 0;  /* オーバーフロー対策 */
+	if (alignment == 0 || value > (SIZE_MAX - (alignment - 1))  /* オーバーフロー対策 */) {
+		errno = EINVAL;
+		return 0;
+	}
 
 	if ((alignment & (alignment - 1)) == 0) {  /* alignment が2のべき乗ならビット演算 */
 		return (value + (alignment - 1)) & ~(alignment - 1);
@@ -78,15 +86,23 @@ static size_t align_up (size_t value, size_t alignment) {
 
 /* 注意: *result_ptrs_size は *result_padding_size を「含まない」ので注意が必要 */
 bool calculate_nd_array_size (const size_t sizes[], size_t dims, size_t elem_size, size_t* result_ptrs_size, size_t* result_padding_size, size_t* result_total_elements) {
+	if (elem_size == 0 || dims == 0 || result_ptrs_size == NULL ||
+		result_padding_size == NULL || result_total_elements == NULL) {
+		errno = EINVAL;
+		anda_errfunc = "calculate_nd_array_size";
+		return false;
+	}
+
 	*result_ptrs_size = 0;
 	*result_padding_size = 0;
 	*result_total_elements = 1;
 
-	if (elem_size == 0 || dims == 0) return false;
-
 	if (dims == 1) {  /* 1次元 (ただの配列) の場合はそのまま掛け算でサイズを求めて返却 */
-		if (sizes[0] == 0 || sizes[0] > (SIZE_MAX / elem_size))
+		if (sizes[0] == 0 || sizes[0] > (SIZE_MAX / elem_size)) {
+			errno = EINVAL;
+			anda_errfunc = "calculate_nd_array_size";
 			return false;
+		}
 
 		*result_total_elements = sizes[0];
 		return true;
@@ -96,8 +112,11 @@ bool calculate_nd_array_size (const size_t sizes[], size_t dims, size_t elem_siz
 	size_t total_elements = 1;
 	size_t total_ptrs = 0;
 	for (size_t i = 0; i < dims; i++) {
-		if (sizes[i] == 0 || total_elements > (SIZE_MAX / sizes[i]))
+		if (sizes[i] == 0 || total_elements > (SIZE_MAX / sizes[i])) {
+			errno = EINVAL;
+			anda_errfunc = "calculate_nd_array_size";
 			return false;
+		}
 		total_elements *= sizes[i];
 
 		if (i < dims - 1)  /* 最下層以外はポインタ数を加算 */
@@ -110,16 +129,21 @@ bool calculate_nd_array_size (const size_t sizes[], size_t dims, size_t elem_siz
 	/* アラインメント違反を防ぐため必要に応じて切り上げ */
 	size_t size_padding = 0;  /* パディングのサイズを格納する */
 	if (elem_size > sizeof(void*)) {
-		size_t size_ptrs_max = align_up(size_ptrs, elem_size);
+		size_t size_ptrs_max = anda_align_up(size_ptrs, elem_size);
 		if (size_ptrs_max == 0) {
+			errno = EINVAL;
+			anda_errfunc = "calculate_nd_array_size";
 			return false;
 		}
 		size_padding = size_ptrs_max - size_ptrs;
 	}
 
 	if ((total_elements > (SIZE_MAX / elem_size)) ||
-	   ((total_elements * elem_size) > (SIZE_MAX - size_ptrs - size_padding)))
+	   ((total_elements * elem_size) > (SIZE_MAX - size_ptrs - size_padding))) {
+		errno = EINVAL;
+		anda_errfunc = "calculate_nd_array_size";
 		return false;
+	}
 
 	*result_ptrs_size = size_ptrs;
 	*result_padding_size = size_padding;
@@ -129,12 +153,23 @@ bool calculate_nd_array_size (const size_t sizes[], size_t dims, size_t elem_siz
 
 
 void* allocate_and_initialize_nd_array (const size_t sizes[], size_t dims, size_t elem_size, size_t size_ptrs, size_t size_padding, size_t total_elements, allocFuncPtr alloc_func) {
-	if (dims == 1)  /* 1次元 (ただの配列) の場合はそのまま malloc に渡す */
-		return alloc_func(total_elements * elem_size);
+	if (dims == 1) {  /* 1次元 (ただの配列) の場合はそのまま malloc に渡す */
+		void* ptr = alloc_func(total_elements * elem_size);
+		if (UNLIKELY(ptr == NULL)) {
+			errno = ENOMEM;
+			anda_errfunc = "allocate_and_initialize_nd_array";
+			return NULL;
+		}
+		return ptr;
+	}
 
 	/* メモリブロックを確保 */
 	void** base = alloc_func(size_ptrs + size_padding + (total_elements * elem_size));
-	if (UNLIKELY(base == NULL)) return NULL;
+	if (UNLIKELY(base == NULL)) {
+		errno = ENOMEM;
+		anda_errfunc = "allocate_and_initialize_nd_array";
+		return NULL;
+	}
 
 	void** ptr = base;  /* ポインタの開始位置を格納 */
 
@@ -164,19 +199,33 @@ void* allocate_and_initialize_nd_array (const size_t sizes[], size_t dims, size_
 
 void* alloc_nd_array (const size_t sizes[], size_t dims, size_t elem_size) {
 	size_t size_ptrs, size_padding, total_elements;
-	if (!calculate_nd_array_size(sizes, dims, elem_size, &size_ptrs, &size_padding, &total_elements))
+	if (!calculate_nd_array_size(sizes, dims, elem_size, &size_ptrs, &size_padding, &total_elements)) {
+		anda_errfunc = "alloc_nd_array";
 		return NULL;
+	}
 
-	return allocate_and_initialize_nd_array(sizes, dims, elem_size, size_ptrs, size_padding, total_elements, malloc);
+	void* ptr = allocate_and_initialize_nd_array(sizes, dims, elem_size, size_ptrs, size_padding, total_elements, malloc);
+	if (ptr == NULL) {
+		anda_errfunc = "alloc_nd_array";
+		return NULL;
+	}
+	return ptr;
 }
 
 
 void* calloc_nd_array (const size_t sizes[], size_t dims, size_t elem_size) {
 	size_t size_ptrs, size_padding, total_elements;
-	if (!calculate_nd_array_size(sizes, dims, elem_size, &size_ptrs, &size_padding, &total_elements))
+	if (!calculate_nd_array_size(sizes, dims, elem_size, &size_ptrs, &size_padding, &total_elements)) {
+		anda_errfunc = "calloc_nd_array";
 		return NULL;
+	}
 
-	return allocate_and_initialize_nd_array(sizes, dims, elem_size, size_ptrs, size_padding, total_elements, calloc_wrapper);
+	void* ptr = allocate_and_initialize_nd_array(sizes, dims, elem_size, size_ptrs, size_padding, total_elements, calloc_wrapper);
+	if (ptr == NULL) {
+		anda_errfunc = "calloc_nd_array";
+		return NULL;
+	}
+	return ptr;
 }
 
 
