@@ -2,7 +2,7 @@
  * alloc_nd_array.c -- implementation part of a library that provides functions for
  *                     allocating multi-dimensional arrays that can be freed with a
  *                     single free() call
- * version 0.9.2, June 14, 2025
+ * version 0.9.3, June 15, 2025
  *
  * License: zlib License
  *
@@ -61,7 +61,11 @@
 
 
 /* errno 記録時に関数名を記録する */
-const char* anda_errfunc = NULL;  /* 非スレッドセーフ */
+#ifdef THREAD_LOCAL
+	THREAD_LOCAL const char* anda_errfunc = NULL;
+#else
+	const char* anda_errfunc = NULL;  /* 非スレッドセーフ */
+#endif
 
 
 static void* calloc_wrapper (size_t size) {

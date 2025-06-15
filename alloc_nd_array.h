@@ -2,7 +2,7 @@
  * alloc_nd_array.h -- interface of a library that provides functions for allocating
  *                     multi-dimensional arrays that can be freed with a single free()
  *                     call
- * version 0.9.2, June 14, 2025
+ * version 0.9.3, June 15, 2025
  *
  * License: zlib License
  *
@@ -52,6 +52,15 @@ ANDA_CPP_C_BEGIN
 #include <stdbool.h>
 
 
+#if defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+	#define THREAD_LOCAL _Thread_local
+#elif defined (__GNUC__)
+	#define THREAD_LOCAL __thread
+#elif defined (_MSC_VER)
+	#define THREAD_LOCAL __declspec(thread)
+#endif
+
+
 /*
  * anda_errfunc is a global variable that stores the name of the function
  * where the most recent error occurred within the hash table library.
@@ -63,7 +72,11 @@ ANDA_CPP_C_BEGIN
  * It is recommended to check this variable and errno after calling
  * any library function that may fail.
  */
-extern const char* anda_errfunc;
+#ifdef THREAD_LOCAL
+	extern THREAD_LOCAL const char* anda_errfunc;
+#else
+	extern const char* anda_errfunc;
+#endif
 
 
 /*
