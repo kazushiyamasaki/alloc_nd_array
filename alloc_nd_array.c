@@ -2,7 +2,7 @@
  * alloc_nd_array.c -- implementation part of a library that provides functions for
  *                     allocating multi-dimensional arrays that can be freed with a
  *                     single free() call
- * version 0.9.3, June 15, 2025
+ * version 0.9.5, June 22, 2025
  *
  * License: zlib License
  *
@@ -28,6 +28,7 @@
  * distribution.
  */
 
+#include "anda_llapi.h"
 #include "alloc_nd_array.h"
 
 #include <stdio.h>
@@ -46,17 +47,8 @@
 #endif
 
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-macros"
-
-	#define LIKELY(x)   __builtin_expect(!!(x), 1)
-	#define UNLIKELY(x) __builtin_expect(!!(x), 0)
-
-#pragma GCC diagnostic pop
-#else
-	#define LIKELY(x)   (x)
-	#define UNLIKELY(x) (x)
+#if defined (_WIN32) && (!defined(_WIN32_WINNT) || (_WIN32_WINNT < 0x0600))
+	#error "This program requires Windows Vista or later. Define _WIN32_WINNT accordingly."
 #endif
 
 
@@ -235,4 +227,36 @@ void* calloc_nd_array (const size_t sizes[], size_t dims, size_t elem_size) {
 
 void free_nd_array (void* array) {
 	free(array);
+}
+
+
+void* alloc_nd_array_manual_padding (const size_t sizes[], size_t dims, size_t padding_bytes, size_t elem_size) {
+	size_t size_ptrs, unused, total_elements;
+	if (!calculate_nd_array_size(sizes, dims, elem_size, &size_ptrs, &unused, &total_elements)) {
+		anda_errfunc = "alloc_nd_array_manual_padding";
+		return NULL;
+	}
+
+	void* ptr = allocate_and_initialize_nd_array(sizes, dims, elem_size, size_ptrs, padding_bytes, total_elements, malloc);
+	if (ptr == NULL) {
+		anda_errfunc = "alloc_nd_array_manual_padding";
+		return NULL;
+	}
+	return ptr;
+}
+
+
+void* calloc_nd_array_manual_padding (const size_t sizes[], size_t dims, size_t padding_bytes, size_t elem_size) {
+	size_t size_ptrs, unused, total_elements;
+	if (!calculate_nd_array_size(sizes, dims, elem_size, &size_ptrs, &unused, &total_elements)) {
+		anda_errfunc = "calloc_nd_array_manual_padding";
+		return NULL;
+	}
+
+	void* ptr = allocate_and_initialize_nd_array(sizes, dims, elem_size, size_ptrs, padding_bytes, total_elements, calloc_wrapper);
+	if (ptr == NULL) {
+		anda_errfunc = "calloc_nd_array_manual_padding";
+		return NULL;
+	}
+	return ptr;
 }

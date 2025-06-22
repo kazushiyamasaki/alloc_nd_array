@@ -2,7 +2,7 @@
  * alloc_nd_array.h -- interface of a library that provides functions for allocating
  *                     multi-dimensional arrays that can be freed with a single free()
  *                     call
- * version 0.9.3, June 15, 2025
+ * version 0.9.5, June 22, 2025
  *
  * License: zlib License
  *
@@ -34,15 +34,7 @@
 #define ALLOC_ND_ARRAY_H
 
 
-#ifndef ANDA_CPP_C_BEGIN
-	#ifdef __cplusplus  /* C++ */
-		#define ANDA_CPP_C_BEGIN extern "C" {
-		#define ANDA_CPP_C_END }
-	#else               /* not C++ */
-		#define ANDA_CPP_C_BEGIN
-		#define ANDA_CPP_C_END
-	#endif
-#endif
+#include "anda_macros.h"
 
 
 ANDA_CPP_C_BEGIN
@@ -52,18 +44,9 @@ ANDA_CPP_C_BEGIN
 #include <stdbool.h>
 
 
-#if defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
-	#define THREAD_LOCAL _Thread_local
-#elif defined (__GNUC__)
-	#define THREAD_LOCAL __thread
-#elif defined (_MSC_VER)
-	#define THREAD_LOCAL __declspec(thread)
-#endif
-
-
 /*
  * anda_errfunc is a global variable that stores the name of the function
- * where the most recent error occurred within the hash table library.
+ * where the most recent error occurred within this library.
  *
  * It is set to NULL when no error has occurred.
  * This variable is used to provide more informative error diagnostics,
@@ -134,30 +117,6 @@ extern bool calculate_nd_array_size (const size_t sizes[], size_t dims, size_t e
  * @note: this function aligns the given value up to multiple of the specified alignment
  */
 extern size_t anda_align_up (size_t value, size_t alignment);
-
-
-/*
- * The following function is provided for special use cases where it is necessary to
- * separate the size calculation and the allocation of a multidimensional array.
- * Its usage is complex and prone to errors, so it is generally not recommended for
- * regular use.
- */
-
-
-typedef void* (*allocFuncPtr)(size_t);
-
-/*
- * allocate_and_initialize_nd_array
- * @param sizes: array containing sizes for each dimension (must have length equal to dims)
- * @param dims: number of array dimensions (designed for 2+ dimensions but supports 1D arrays)
- * @param elem_size: size of each element in bytes (e.g., sizeof(int), sizeof(double), etc.)
- * @param size_ptrs: size of the pointer array (not including padding)
- * @param size_padding: size of the padding
- * @param total_elements: total number of elements in the array
- * @param alloc_func: function pointer to the memory allocation function (e.g., malloc, calloc_wrapper)
- * @return: pointer to the allocated and initialized multi-dimensional array or NULL on failure
- */
-extern void* allocate_and_initialize_nd_array (const size_t sizes[], size_t dims, size_t elem_size, size_t size_ptrs, size_t size_padding, size_t total_elements, allocFuncPtr alloc_func);
 
 
 ANDA_CPP_C_END
