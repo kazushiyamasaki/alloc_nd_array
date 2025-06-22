@@ -29,7 +29,6 @@
  */
 
 #include "anda_llapi.h"
-#include "alloc_nd_array.h"
 
 #include <stdio.h>
 #include <stdlib.h>

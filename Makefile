@@ -24,7 +24,7 @@ endif
 MODE				?=
 
 # 依存ライブラリ
-CFLAGS				= -I. -I./libs
+CFLAGS				= -I.
 LDLIBS				=
 
 # FORTIFY_SOURCE の値を gcc >= 12 または clang なら 3 、そうでなければ 2 に指定する
