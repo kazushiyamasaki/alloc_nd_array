@@ -32,16 +32,20 @@
 #define ANDA_LLAPI_H
 
 
+
 #include "anda_macros.h"
 
 
+
 ANDA_CPP_C_BEGIN
+
 
 
 #include "alloc_nd_array.h"
 
 #include <stddef.h>
 #include <stdbool.h>
+
 
 
 /*
@@ -55,6 +59,7 @@ ANDA_CPP_C_BEGIN
  */
 
 
+
 /*
  * alloc_nd_array_manual_padding
  * @param sizes: array containing sizes for each dimension (must have length equal to dims)
@@ -66,6 +71,11 @@ ANDA_CPP_C_BEGIN
  */
 extern void* alloc_nd_array_manual_padding (const size_t sizes[], size_t dims, size_t padding_bytes, size_t elem_size);
 
+/* A macro is available that automatically calculates the type size using sizeof(type). */
+#define alloc_nd_array_manual_padding_t (sizes, dims, padding_bytes, elem_type) \
+	alloc_nd_array_manual_padding ((sizes), (dims), (padding_bytes), sizeof(elem_type))
+
+
 /*
  * calloc_nd_array_manual_padding
  * @param sizes: array containing sizes for each dimension (must have length equal to dims)
@@ -76,6 +86,10 @@ extern void* alloc_nd_array_manual_padding (const size_t sizes[], size_t dims, s
  * @note: After calling, cast the returned pointer to the appropriate type (e.g., int***, double**, etc.) to access it as the multi-dimensional array. The allocated memory must be freed using free() when no longer needed. Use alloc_nd_array_manual_padding if zero-initialization is not required and higher performance is desired.
  */
 void* calloc_nd_array_manual_padding (const size_t sizes[], size_t dims, size_t padding_bytes, size_t elem_size);
+
+/* A macro is available that automatically calculates the type size using sizeof(type). */
+#define calloc_nd_array_manual_padding_t (sizes, dims, padding_bytes, elem_type) \
+	calloc_nd_array_manual_padding ((sizes), (dims), (padding_bytes), sizeof(elem_type))
 
 
 
@@ -102,8 +116,14 @@ typedef void* (*allocFuncPtr)(size_t);
  */
 extern void* allocate_and_initialize_nd_array (const size_t sizes[], size_t dims, size_t elem_size, size_t size_ptrs, size_t size_padding, size_t total_elements, allocFuncPtr alloc_func);
 
+/* A macro is available that automatically calculates the type size using sizeof(type). */
+#define allocate_and_initialize_nd_array_t (sizes, dims, elem_type, size_ptrs, size_padding, total_elements, alloc_func) \
+	allocate_and_initialize_nd_array ((sizes), (dims), sizeof(elem_type), (size_ptrs), (size_padding), (total_elements), (alloc_func))
+
+
 
 ANDA_CPP_C_END
+
 
 
 #endif
