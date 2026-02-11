@@ -77,9 +77,12 @@ ANDA_CPP_C_BEGIN
  */
 extern void* alloc_nd_array (const size_t sizes[], size_t dims, size_t elem_size);
 
-/* A macro is available that automatically calculates the type size using sizeof(type). */
-#define alloc_nd_array_t (sizes, dims, elem_type) \
-	alloc_nd_array ((sizes), (dims), sizeof(elem_type))
+/* A macro is available that automatically calculates the type size using sizeof(type).
+ *
+ * alloc_nd_array_t
+ */
+#define alloc_nd_array_t(sizes, dims, elem_type) \
+	alloc_nd_array((sizes), (dims), sizeof(elem_type))
 
 
 /*
@@ -92,9 +95,12 @@ extern void* alloc_nd_array (const size_t sizes[], size_t dims, size_t elem_size
  */
 extern void* calloc_nd_array (const size_t sizes[], size_t dims, size_t elem_size);
 
-/* A macro is available that automatically calculates the type size using sizeof(type). */
-#define calloc_nd_array_t (sizes, dims, elem_type) \
-	calloc_nd_array ((sizes), (dims), sizeof(elem_type))
+/* A macro is available that automatically calculates the type size using sizeof(type).
+ *
+ * calloc_nd_array_t
+ */
+#define calloc_nd_array_t(sizes, dims, elem_type) \
+	calloc_nd_array((sizes), (dims), sizeof(elem_type))
 
 
 /*
@@ -118,9 +124,12 @@ extern void free_nd_array (void* array);
  */
 extern bool calculate_nd_array_size (const size_t sizes[], size_t dims, size_t elem_size, size_t* result_ptrs_size, size_t* result_padding_size, size_t* result_total_elements);
 
-/* A macro is available that automatically calculates the type size using sizeof(type). */
-#define calculate_nd_array_size_t (sizes, dims, elem_type, result_ptrs_size, result_padding_size, result_total_elements) \
-	calculate_nd_array_size ((sizes), (dims), sizeof(elem_type), (result_ptrs_size), (result_padding_size), (result_total_elements))
+/* A macro is available that automatically calculates the type size using sizeof(type).
+ *
+ * calculate_nd_array_size_t
+ */
+#define calculate_nd_array_size_t(sizes, dims, elem_type, result_ptrs_size, result_padding_size, result_total_elements) \
+	calculate_nd_array_size((sizes), (dims), sizeof(elem_type), (result_ptrs_size), (result_padding_size), (result_total_elements))
 
 
 
