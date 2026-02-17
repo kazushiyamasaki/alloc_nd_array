@@ -105,7 +105,7 @@ ADDITIONAL_FLAGS	= -Werror -Wmissing-declarations -Wmissing-include-dirs \
 					-Wfloat-equal -Wmaybe-uninitialized -Wcast-align -Wcast-qual \
 					-Wcast-function-type -Wcast-align=strict -Wfloat-conversion \
 					-Wdouble-promotion -Wunsafe-loop-optimizations -Wpointer-arith \
-					-Winit-self -Walloca -Walloc-zero -Wstringop-overflow \
+					-Winit-self -Walloca -Wvla -Walloc-zero -Wstringop-overflow \
 					-Wstack-protector -Wformat=2 -Wformat-zero-length \
 					-Wformat-signedness -Wformat-overflow=2 -Wformat-truncation=2 \
 					-Wwrite-strings -Wvariadic-macros -Woverlength-strings -Wlogical-op \
@@ -185,7 +185,7 @@ ADDITIONAL_FLAGS	= -Werror -Wmissing-declarations -Wmissing-include-dirs \
 					-Wcast-align -Wcast-qual -Wcast-function-type -Wcast-align \
 					-Wfloat-conversion -Wdouble-promotion -Wloop-analysis \
 					-Wfor-loop-analysis -Wunreachable-code-loop-increment \
-					-Wpointer-arith -Winit-self -Walloca -Wstrlcpy-strlcat-size \
+					-Wpointer-arith -Winit-self -Walloca -Wvla -Wstrlcpy-strlcat-size \
 					-Warray-bounds -Wstack-protector -Wformat=2 -Wformat-zero-length \
 					-Wwrite-strings -Wvariadic-macros -Woverlength-strings \
 					-Wconstant-logical-operand -Wtautological-constant-in-range-compare \
