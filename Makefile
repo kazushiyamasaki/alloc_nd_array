@@ -23,6 +23,10 @@ endif
 # MODE: 通常は空か 'release'、デバッグ時は 'debug'
 MODE				?=
 
+# LIB_MODE: DEBUG マクロをコンパイル時に定義するかどうか
+# 定義しない場合は空か 'release'、DEBUG マクロを定義する場合は 'debug'
+LIB_MODE			?=
+
 # 依存ライブラリ
 CFLAGS				= -I.
 LDLIBS				=
@@ -37,7 +41,7 @@ endif
 
 # 共通のフラグ
 COMMON_FLAGS		= -MMD -fstack-protector-strong -D_FORTIFY_SOURCE=$(FORTIFY_LEVEL) \
-					-fstack-clash-protection -std=gnu17 -Wall -Wextra
+					-fstack-clash-protection -Wall -Wextra
 
 
 # FCFチェック結果を保存するファイル名
@@ -151,13 +155,19 @@ ifeq ($(shell [ $(GCC_VERSION_MAJOR) -eq 14 ] && echo yes),yes)
 ADDITIONAL_FLAGS	+= -Wflex-array-member-not-at-end
 endif
 
+# gcc 15 未満なら以下のオプションを追加
+ifeq ($(shell [ $(GCC_VERSION_MAJOR) -lt 15 ] && echo yes),yes)
+COMMON_FLAGS		+= -std=gnu17
+endif
+
 # gcc 15 以上なら以下のオプションを追加
 ifeq ($(shell [ $(GCC_VERSION_MAJOR) -ge 15 ] && echo yes),yes)
+COMMON_FLAGS		+= -std=gnu23
 ADDITIONAL_FLAGS	+= -Wdeprecated-non-prototype -Wmissing-parameter-name \
 					-Wstrict-flex-arrays=3 -Wfree-labels
 endif
 
-endif  # 92行目からここまで GCC のみ
+endif  # 96行目からここまで GCC のみ
 
 
 SCAN_BUILD			=
@@ -205,8 +215,14 @@ ifeq ($(shell [ $(CLANG_VERSION_MAJOR) -ge 16 ] && echo yes),yes)
 COMMON_FLAGS		+= -fstrict-flex-arrays=3
 endif
 
+# clang 18 未満なら以下のオプションを追加
+ifeq ($(shell [ $(CLANG_VERSION_MAJOR) -lt 18 ] && echo yes),yes)
+COMMON_FLAGS		+= -std=gnu17
+endif
+
 # clang 18 以上なら以下のオプションを追加
 ifeq ($(shell [ $(CLANG_VERSION_MAJOR) -ge 18 ] && echo yes),yes)
+COMMON_FLAGS		+= -std=gnu23
 ADDITIONAL_FLAGS	+= -Wformat-overflow -Wformat-truncation
 endif
 
@@ -215,8 +231,13 @@ ifeq ($(shell [ $(CLANG_VERSION_MAJOR) -ge 19 ] && echo yes),yes)
 ADDITIONAL_FLAGS	+= -Wformat-signedness
 endif
 
-endif  # 165行目からここまで Clang のみ
+endif  # 173行目からここまで Clang のみ
 
+
+# LIB_MODE に応じて CFLAGS で DEBUG マクロを定義する
+ifeq ($(LIB_MODE),debug)
+CFLAGS				+= -DDEBUG
+endif
 
 # MODE に応じて CFLAGS を設定する
 ifeq ($(MODE),debug)
