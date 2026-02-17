@@ -20,7 +20,7 @@ ifneq ($(findstring clang,$(notdir $(CC))),)
 CLANG_VERSION_MAJOR	:= $(shell $(CC) --version | awk '/clang version/ {match($$0, /[0-9]+\.[0-9]+\.[0-9]+/, a); print a[0]}' | cut -d. -f1)
 endif
 
-# MODE: 通常は空か 'release'、デバッグ時は 'debug'
+# MODE: リリース時は空か 'release'、デバッグ時は 'debug'
 MODE				?=
 
 # LIB_MODE: DEBUG マクロをコンパイル時に定義するかどうか
@@ -40,8 +40,7 @@ FORTIFY_LEVEL		:= 2
 endif
 
 # 共通のフラグ
-COMMON_FLAGS		= -MMD -fstack-protector-strong -D_FORTIFY_SOURCE=$(FORTIFY_LEVEL) \
-					-fstack-clash-protection -Wall -Wextra
+COMMON_FLAGS		= -MMD -fstack-clash-protection -Wall -Wextra
 
 
 # FCFチェック結果を保存するファイル名
@@ -86,17 +85,18 @@ COMMON_FLAGS		+= -mbranch-protection=standard
 endif
 
 
-# 最適化レベル（通常ビルド用）
-OPT_FLAGS			= -O2 -DNDEBUG
+# リリース用フラグ（MODE が空または release のとき追加）
+RELEASE_FLAGS		= -O2 -DNDEBUG \
+					-fstack-protector-strong -D_FORTIFY_SOURCE=$(FORTIFY_LEVEL)
 
-# デバッグ用フラグ（debugターゲットなどで上書き）
-DEBUG_FLAGS			= -O0 -g
+# デバッグ用フラグ（MODE が debug のとき追加）
+DEBUG_FLAGS			= -O0 -g -fstack-protector-all
 
 
 # CC が GCC であった場合
 ifneq ($(findstring gcc,$(notdir $(CC))),)
 
-# 追加の警告フラグ（debugターゲットなどで上書き）
+# 追加の警告フラグ（MODE が debug のとき追加）
 ADDITIONAL_FLAGS	= -Werror -Wmissing-declarations -Wmissing-include-dirs \
 					-Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition \
 					-Wimplicit-function-declaration -Wmissing-field-initializers \
@@ -175,7 +175,7 @@ SCAN_BUILD			=
 # CC が Clang であった場合
 ifneq ($(findstring clang,$(notdir $(CC))),)
 
-# 追加の警告フラグ（debugターゲットなどで上書き）
+# 追加の警告フラグ（MODE が debug のとき追加）
 ADDITIONAL_FLAGS	= -Werror -Wmissing-declarations -Wmissing-include-dirs \
 					-Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition \
 					-Wimplicit-function-declaration -Wmissing-field-initializers \
@@ -243,7 +243,7 @@ endif
 ifeq ($(MODE),debug)
 CFLAGS				+= $(COMMON_FLAGS) $(DEBUG_FLAGS) $(ADDITIONAL_FLAGS)
 else
-CFLAGS				+= $(COMMON_FLAGS) $(OPT_FLAGS)
+CFLAGS				+= $(COMMON_FLAGS) $(RELEASE_FLAGS)
 endif
 
 # リンカフラグ
