@@ -2,11 +2,11 @@
  * alloc_nd_array.h -- interface of a library that provides functions for allocating
  *                     multi-dimensional arrays that can be freed with a single free()
  *                     call
- * version 0.9.5, June 22, 2025
+ * version 0.9.6, Feb. 20, 2026
  *
  * License: zlib License
  *
- * Copyright (c) 2025 Kazushi Yamasaki
+ * Copyright (c) 2026 Kazushi Yamasaki
  *
  * This software is provided ‘as-is’, without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -65,6 +65,11 @@ ANDA_CPP_C_BEGIN
 	extern const char* anda_errfunc;
 #endif
 
+
+#if defined(__GNUC__) && !defined(__clang__)
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wunused-macros"
+#endif
 
 
 /*
@@ -149,6 +154,10 @@ extern bool calculate_nd_array_size (const size_t sizes[], size_t dims, size_t e
  */
 extern size_t anda_align_up (size_t value, size_t alignment);
 
+
+#if defined(__GNUC__) && !defined(__clang__)
+	#pragma GCC diagnostic pop  /* -Wunused-macros */
+#endif
 
 
 ANDA_CPP_C_END

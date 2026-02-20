@@ -1,10 +1,10 @@
 /*
  * anda_llapi.h -- interface for alloc_nd_array's low-level API group
- * version 0.9.5, June 22, 2025
+ * version 0.9.6, Feb. 20, 2026
  *
  * License: zlib License
  *
- * Copyright (c) 2025 Kazushi Yamasaki
+ * Copyright (c) 2026 Kazushi Yamasaki
  *
  * This software is provided ‘as-is’, without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -58,6 +58,11 @@ ANDA_CPP_C_BEGIN
  * alignment requirements.
  */
 
+
+#if defined(__GNUC__) && !defined(__clang__)
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wunused-macros"
+#endif
 
 
 /*
@@ -129,6 +134,10 @@ extern void* allocate_and_initialize_nd_array (const size_t sizes[], size_t dims
 #define allocate_and_initialize_nd_array_t(sizes, dims, elem_type, size_ptrs, size_padding, total_elements, alloc_func) \
 	allocate_and_initialize_nd_array((sizes), (dims), sizeof(elem_type), (size_ptrs), (size_padding), (total_elements), (alloc_func))
 
+
+#if defined(__GNUC__) && !defined(__clang__)
+	#pragma GCC diagnostic pop  /* -Wunused-macros */
+#endif
 
 
 ANDA_CPP_C_END

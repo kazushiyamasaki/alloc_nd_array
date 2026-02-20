@@ -1,10 +1,10 @@
 /*
  * anda_macros.h -- a header file defining macros used in alloc_nd_array.h
- * version 0.9.5, June 22, 2025
+ * version 0.9.6, Feb. 20, 2026
  *
  * License: zlib License
  *
- * Copyright (c) 2025 Kazushi Yamasaki
+ * Copyright (c) 2026 Kazushi Yamasaki
  *
  * This software is provided ‘as-is’, without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -56,13 +56,17 @@
 
 #ifndef LIKELY
 	#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-macros"
+		#ifndef __clang__
+			#pragma GCC diagnostic push
+			#pragma GCC diagnostic ignored "-Wunused-macros"
+		#endif
 
 		#define LIKELY(x)   __builtin_expect(!!(x), 1)
 		#define UNLIKELY(x) __builtin_expect(!!(x), 0)
-	
-#pragma GCC diagnostic pop
+
+		#ifndef __clang__
+			#pragma GCC diagnostic pop  /* -Wunused-macros */
+		#endif
 	#else
 		#define LIKELY(x)   (x)
 		#define UNLIKELY(x) (x)
